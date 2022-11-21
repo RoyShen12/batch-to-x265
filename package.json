@@ -1,0 +1,22 @@
+{
+  "name": "batch-to-x265",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/humanize-duration": "^3.27.1",
+    "@types/lodash": "^4.14.189",
+    "@types/node": "^18.11.9",
+    "@types/progress": "^2.0.5",
+    "chalk": "4",
+    "ffmpeg-progress-wrapper": "^2.0.1",
+    "lodash": "^4.17.21",
+    "progress": "^2.0.3",
+    "typescript": "^4.9.3"
+  }
+}
