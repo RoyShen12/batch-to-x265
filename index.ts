@@ -101,9 +101,10 @@ async function main(workFileOrPath?: string) {
             .split(/\r|\n/)
             .filter(line => /codec_name=\w+/.test(line))
             .join(' ')
-          // console.log(`codecLine: ${codecLine}`)
 
           if (codecLine !== '' && !codecLine.includes('codec_name=hevc')) {
+            console.log(`codecLine: ${codecLine}`)
+
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
             if (outputFile === file) {
