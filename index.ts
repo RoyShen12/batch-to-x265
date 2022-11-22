@@ -63,8 +63,6 @@ const ffmpegTimeStampToSeconds = (timeStamp: string) => {
   }
 }
 
-let onWriteFile = ''
-
 async function main(workFileOrPath?: string) {
   workFileOrPath = workFileOrPath || inputPath
 
@@ -120,96 +118,108 @@ async function main(workFileOrPath?: string) {
 
             const originSize = fileStat.size
 
-            // const cmd = `ffmpeg -y -hwaccel auto -i "${file}" -c:v libx265 -preset fast -crf 28 -tag:v hvc1 -c:a copy "${outputFile}"`
-            // console.log(`ffmpeg command: ${chalk.bold(chalk.cyanBright(cmd))}`)
-            // child_process.execSync(cmd)
-            const process = new FFMpegProgress([
-              '-y',
-              '-hwaccel',
-              'auto',
-              '-i',
-              file,
-              '-c:v',
-              'libx265',
-              '-preset',
-              'fast',
-              '-crf',
-              '28',
-              '-tag:v',
-              'hvc1',
-              '-c:a',
-              'copy',
-              outputFile,
-            ])
-
-            const progressBar = new ProgressBar(`[:bar] :percent :speed :size :bitrate :etasec time: :time`, {
-              incomplete: ' ',
-              complete: '-',
-              width: (process.stdout as any).columns - 44,
-              total: 100,
-            })
-
-            onWriteFile = outputFile
-            let fullDuration = ''
-            let fullDurationStr = ''
-
-            process.on('raw', (raw: string) => {
-              if (/Duration: \d+:\d+:\d+\.\d+/.test(raw)) {
-                fullDuration = raw.match(/Duration: (\d+:\d+:\d+\.\d+)/)?.[1] || ''
-                fullDurationStr = fullDuration
-                if (fullDurationStr.startsWith('00:')) {
-                  fullDurationStr = fullDurationStr.slice(3)
+            let retry = 0
+            while (retry < 3) {
+              try {
+                if (retry > 0) {
+                  console.log(`retry ${chalk.bold(chalk.redBright(retry))}`)
                 }
-                fullDurationStr = chalk.bold(chalk.magentaBright(fullDurationStr))
-              }
+                // const cmd = `ffmpeg -y -hwaccel auto -i "${file}" -c:v libx265 -preset fast -crf 28 -tag:v hvc1 -c:a copy "${outputFile}"`
+                // console.log(`ffmpeg command: ${chalk.bold(chalk.cyanBright(cmd))}`)
+                // child_process.execSync(cmd)
+                const process = new FFMpegProgress([
+                  '-y',
+                  '-hwaccel',
+                  'auto',
+                  '-i',
+                  file,
+                  '-c:v',
+                  'libx265',
+                  '-preset',
+                  'fast',
+                  '-crf',
+                  '28',
+                  '-tag:v',
+                  'hvc1',
+                  '-c:a',
+                  'copy',
+                  outputFile,
+                ])
 
-              if (typeof raw === 'string' && raw.includes('speed=')) {
-                const time = raw.match(/time=(\d+:\d+:\d+\.\d+)/)?.[1] || ''
-                let timeHuman = time
-                if (timeHuman.startsWith('00:')) {
-                  timeHuman = timeHuman.slice(3)
-                }
-
-                const bitrate = Number(raw.match(/bitrate=\s*(\d+\.\d+)kbits\/s/)?.[1] || 0)
-                const bitrateStr = bitrate > 1024 ? `${(bitrate / 1024).toFixed(1)}mbps` : `${bitrate.toFixed(1)}kbps`
-
-                const speed = Number(raw.match(/speed=\s*(\d+\.\d+)x/)?.[1] || 0)
-                const speedStr = speed + 'x'
-
-                const size = raw.match(/size=\s*(\d+kB)/)?.[1] || '0kB'
-                const sizeNum = Number(size.replace('kB', ''))
-                const humanSize = sizeNum > 1024 ? `${(sizeNum / 1024).toFixed(2)}MB` : `${sizeNum}kB`
-
-                const processPercent = (ffmpegTimeStampToSeconds(time) / ffmpegTimeStampToSeconds(fullDuration)) * 100
-                const processPercentStr = processPercent.toFixed(1) + '%'
-
-                // [bar] 100% 99.99x 19999.9MB 9999.9kbps 99999.9sec
-                progressBar.update(processPercent / 100, {
-                  speed: chalk.bold(chalk.redBright(speedStr.padStart(6, ' '))),
-                  size: chalk.bold(chalk.blueBright(humanSize.padStart(9, ' '))),
-                  bitrate: chalk.bold(chalk.yellowBright(bitrateStr.padStart(10, ' '))),
-                  time: chalk.bold(chalk.greenBright(timeHuman)) + '/' + fullDurationStr,
+                const progressBar = new ProgressBar(`[:bar] :percent :speed :size :bitrate :etasec time: :time`, {
+                  incomplete: ' ',
+                  complete: '-',
+                  width: (process.stdout as any).columns - 44,
+                  total: 100,
                 })
+
+                let fullDuration = ''
+                let fullDurationStr = ''
+
+                process.on('raw', (raw: string) => {
+                  if (/Duration: \d+:\d+:\d+\.\d+/.test(raw)) {
+                    fullDuration = raw.match(/Duration: (\d+:\d+:\d+\.\d+)/)?.[1] || ''
+                    fullDurationStr = fullDuration
+                    if (fullDurationStr.startsWith('00:')) {
+                      fullDurationStr = fullDurationStr.slice(3)
+                    }
+                    fullDurationStr = chalk.bold(chalk.magentaBright(fullDurationStr))
+                  }
+
+                  if (typeof raw === 'string' && raw.includes('speed=')) {
+                    const time = raw.match(/time=(\d+:\d+:\d+\.\d+)/)?.[1] || ''
+                    let timeHuman = time
+                    if (timeHuman.startsWith('00:')) {
+                      timeHuman = timeHuman.slice(3)
+                    }
+
+                    const bitrate = Number(raw.match(/bitrate=\s*(\d+\.\d+)kbits\/s/)?.[1] || 0)
+                    const bitrateStr =
+                      bitrate > 1024 ? `${(bitrate / 1024).toFixed(1)}mbps` : `${bitrate.toFixed(1)}kbps`
+
+                    const speed = Number(raw.match(/speed=\s*(\d+\.\d+)x/)?.[1] || 0)
+                    const speedStr = speed + 'x'
+
+                    const size = raw.match(/size=\s*(\d+kB)/)?.[1] || '0kB'
+                    const sizeNum = Number(size.replace('kB', ''))
+                    const humanSize = sizeNum > 1024 ? `${(sizeNum / 1024).toFixed(2)}MB` : `${sizeNum}kB`
+
+                    const processPercent =
+                      (ffmpegTimeStampToSeconds(time) / ffmpegTimeStampToSeconds(fullDuration)) * 100
+                    const processPercentStr = processPercent.toFixed(1) + '%'
+
+                    // [bar] 100% 99.99x 19999.9MB 9999.9kbps 99999.9sec
+                    progressBar.update(processPercent / 100, {
+                      speed: chalk.bold(chalk.redBright(speedStr.padStart(6, ' '))),
+                      size: chalk.bold(chalk.blueBright(humanSize.padStart(9, ' '))),
+                      bitrate: chalk.bold(chalk.yellowBright(bitrateStr.padStart(10, ' '))),
+                      time: chalk.bold(chalk.greenBright(timeHuman)) + '/' + fullDurationStr,
+                    })
+                  }
+                })
+
+                // process.once('details', (details) => console.log(JSON.stringify(details)));
+
+                // process.on('progress', (progress: Progress) => {
+                //   console.log(
+                //     `${chalk.bold(chalk.whiteBright(`${((progress?.progress || 0) * 100).toFixed(1)}%`))} | ${chalk.bold(
+                //       chalk.yellowBright(`${((progress?.bitrate || 0) / 1000).toFixed(0)} kbps`)
+                //     )} | ${chalk.bold(chalk.magentaBright(`${progress?.fps || 0} fps`))} | ${chalk.bold(
+                //       chalk.cyanBright(`${moment.duration(progress?.eta || 0, 'seconds').humanize()}`)
+                //     )}`
+                //   )
+                // })
+
+                // process.once('end', console.log.bind(console, 'Conversion finished and exited with code'));
+
+                await process.onDone()
+              } catch (error) {
+                console.log(chalk.bold(chalk.redBright(`ffmpeg conversion error`)))
+                retry += 1
+
+                await new Promise(resolve => setTimeout(resolve, 1000))
               }
-            })
-
-            // process.once('details', (details) => console.log(JSON.stringify(details)));
-
-            // process.on('progress', (progress: Progress) => {
-            //   console.log(
-            //     `${chalk.bold(chalk.whiteBright(`${((progress?.progress || 0) * 100).toFixed(1)}%`))} | ${chalk.bold(
-            //       chalk.yellowBright(`${((progress?.bitrate || 0) / 1000).toFixed(0)} kbps`)
-            //     )} | ${chalk.bold(chalk.magentaBright(`${progress?.fps || 0} fps`))} | ${chalk.bold(
-            //       chalk.cyanBright(`${moment.duration(progress?.eta || 0, 'seconds').humanize()}`)
-            //     )}`
-            //   )
-            // })
-
-            // process.once('end', console.log.bind(console, 'Conversion finished and exited with code'));
-
-            await process.onDone()
-
-            onWriteFile = ''
+            }
 
             const outFileSize = fs.statSync(outputFile).size
 
