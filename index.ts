@@ -85,10 +85,11 @@ async function main(workFileOrPath?: string) {
 
         console.log('back to parent directory')
       } else if (fileStat.isFile()) {
-        console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
 
         // check file is video ext
         if (exts.some(ext => file.endsWith(ext))) {
+          console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
+
           // check file is not hevc
           let ffprobeRes = ''
           try {
@@ -119,7 +120,8 @@ async function main(workFileOrPath?: string) {
             const originSize = fileStat.size
 
             let retry = 0
-            while (retry < 3) {
+            let conversionSuccess = false
+            while (retry < 3 && !conversionSuccess) {
               try {
                 if (retry > 0) {
                   console.log(`retry ${chalk.bold(chalk.redBright(retry))}`)
@@ -213,6 +215,8 @@ async function main(workFileOrPath?: string) {
                 // process.once('end', console.log.bind(console, 'Conversion finished and exited with code'));
 
                 await process.onDone()
+
+                conversionSuccess = true
               } catch (error) {
                 console.log(chalk.bold(chalk.redBright(`ffmpeg conversion error`)))
                 retry += 1
