@@ -87,7 +87,7 @@ async function main(workFileOrPath?: string) {
       } else if (fileStat.isFile()) {
         // check file is video ext
         if (exts.some(ext => file.endsWith(ext))) {
-          console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
+          // console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
 
           // check file is not hevc
           let ffprobeRes = ''
@@ -112,8 +112,6 @@ async function main(workFileOrPath?: string) {
                 .filter(line => /coded_height=\d+/.test(line))
                 ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
 
-            console.log(`codecLine: ${codecLine}, videoSize: ${videoWidth}x${videoHeight}`)
-
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
             if (outputFile === file) {
@@ -124,7 +122,11 @@ async function main(workFileOrPath?: string) {
               outputFile = file.replace(/\.[^.]+$/, '-x265.mp4')
             }
 
-            console.log(`process file ${chalk.bold(chalk.whiteBright(file))}`)
+            console.log(
+              `process file ${chalk.bold(
+                chalk.whiteBright(file)
+              )} codecLine: ${codecLine}, videoSize: ${videoWidth}x${videoHeight}`
+            )
             console.log(`output assume at ${chalk.bold(chalk.blueBright(outputFile))}`)
 
             const originSize = fileStat.size
