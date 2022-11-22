@@ -236,6 +236,10 @@ async function main(workFileOrPath?: string) {
 
               fs.unlinkSync(file)
               console.log(`delete origin file ${chalk.bold(chalk.redBright(file))}`)
+            } else {
+              try {
+                fs.unlinkSync(outputFile)
+              } catch {}
             }
           }
         }
