@@ -101,7 +101,18 @@ async function main(workFileOrPath?: string) {
             .join(' ')
 
           if (codecLine !== '' && !codecLine.includes('codec_name=hevc')) {
-            console.log(`codecLine: ${codecLine}`)
+            const videoWidth =
+              ffprobeRes
+                .split(/\r|\n/)
+                .filter(line => /coded_width=\d+/.test(line))
+                ?.map(line => Number(line.match(/coded_width=(\d+)/)?.[1] || '-1'))?.[0] || -1
+            const videoHeight =
+              ffprobeRes
+                .split(/\r|\n/)
+                .filter(line => /coded_height=\d+/.test(line))
+                ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
+
+            console.log(`codecLine: ${codecLine}, videoSize: ${videoWidth}x${videoHeight}`)
 
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
