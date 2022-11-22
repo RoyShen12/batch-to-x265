@@ -85,7 +85,6 @@ async function main(workFileOrPath?: string) {
 
         console.log('back to parent directory')
       } else if (fileStat.isFile()) {
-
         // check file is video ext
         if (exts.some(ext => file.endsWith(ext))) {
           console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
@@ -225,17 +224,19 @@ async function main(workFileOrPath?: string) {
               }
             }
 
-            const outFileSize = fs.statSync(outputFile).size
+            if (conversionSuccess) {
+              const outFileSize = fs.statSync(outputFile).size
 
-            console.log(
-              chalk.greenBright(
-                'ffmpeg run finish, space saved: ' +
-                  chalk.bold(chalk.whiteBright(`${(((originSize - outFileSize) / originSize) * 100).toFixed(1)}%`))
+              console.log(
+                chalk.greenBright(
+                  'ffmpeg run finish, space saved: ' +
+                    chalk.bold(chalk.whiteBright(`${(((originSize - outFileSize) / originSize) * 100).toFixed(1)}%`))
+                )
               )
-            )
 
-            fs.unlinkSync(file)
-            console.log(`delete origin file ${chalk.bold(chalk.redBright(file))}`)
+              fs.unlinkSync(file)
+              console.log(`delete origin file ${chalk.bold(chalk.redBright(file))}`)
+            }
           }
         }
       }
