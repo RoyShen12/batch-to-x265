@@ -71,10 +71,14 @@ async function main(workFileOrPath?: string) {
   if (fs.statSync(workFileOrPath).isDirectory()) {
     console.log(`working dir: ${chalk.bold(chalk.whiteBright(workFileOrPath))}`)
 
-    const files = fs
+    let files = fs
       .readdirSync(workFileOrPath)
       .map(file => path.resolve(workFileOrPath as string, file))
       .sort()
+
+    if (process.argv.includes('-r')) {
+      files = files.reverse()
+    }
 
     for (const file of files) {
       let fileStat: fs.Stats | undefined
