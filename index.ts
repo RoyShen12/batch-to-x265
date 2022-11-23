@@ -77,16 +77,22 @@ async function main(workFileOrPath?: string) {
       .sort()
 
     for (const file of files) {
-      const fileStat = fs.statSync(file)
+      let fileStat: fs.Stats | undefined
 
-      if (fileStat.isDirectory()) {
+      try {
+        fileStat = fs.statSync(file)
+      } catch {
+        continue
+      }
+
+      if (fileStat?.isDirectory()) {
         console.log(`change directory into ${chalk.bold(chalk.whiteBright(file))}`)
 
         // child_process.execSync(`ts-node index.ts ${file}`)
         await main(file)
 
         console.log('back to parent directory')
-      } else if (fileStat.isFile()) {
+      } else if (fileStat?.isFile()) {
         // check file is video ext
         if (exts.some(ext => file.endsWith(ext))) {
           // console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
