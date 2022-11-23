@@ -230,7 +230,7 @@ async function main(workFileOrPath?: string) {
 
                 conversionSuccess = true
               } catch (error) {
-                console.log(chalk.bold(chalk.redBright(`ffmpeg conversion error`)))
+                console.log(chalk.bold(chalk.redBright(`\nffmpeg conversion error`)))
                 retry += 1
 
                 await new Promise(resolve => setTimeout(resolve, 1000))
@@ -242,7 +242,7 @@ async function main(workFileOrPath?: string) {
 
               console.log(
                 chalk.greenBright(
-                  'ffmpeg run finish, space saved: ' +
+                  '\nffmpeg run finish, space saved: ' +
                     chalk.bold(chalk.whiteBright(`${(((originSize - outFileSize) / originSize) * 100).toFixed(1)}%`))
                 )
               )
