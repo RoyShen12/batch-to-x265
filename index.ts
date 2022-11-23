@@ -287,7 +287,7 @@ async function main(workFileOrPath?: string) {
 
 main()
 
-process.on('exit', () => {
+process.on('SIGINT', () => {
   try {
     if (lastLock) {
       fs.unlinkSync(lastLock)
