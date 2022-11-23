@@ -293,4 +293,6 @@ process.on('SIGINT', () => {
       fs.unlinkSync(lastLock)
     }
   } catch {}
+
+  process.exit()
 })
