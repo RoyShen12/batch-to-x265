@@ -63,6 +63,8 @@ const ffmpegTimeStampToSeconds = (timeStamp: string) => {
   }
 }
 
+let lastLock = ''
+
 async function main(workFileOrPath?: string) {
   workFileOrPath = workFileOrPath || inputPath
 
@@ -88,6 +90,8 @@ async function main(workFileOrPath?: string) {
         // check file is video ext
         if (exts.some(ext => file.endsWith(ext))) {
           // console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
+
+          if (file.endsWith('.x265.mp4') || file.endsWith('-x265.mp4')) continue
 
           // check file is not hevc
           let ffprobeRes = ''
@@ -120,6 +124,16 @@ async function main(workFileOrPath?: string) {
 
             if (outputFile === file) {
               outputFile = file.replace(/\.[^.]+$/, '-x265.mp4')
+            }
+
+            const lockFile = `${file}.lock`
+
+            if (fs.existsSync(lockFile)) {
+              console.log(`skip ${chalk.bold(chalk.whiteBright(file))} because it is locked`)
+              continue
+            } else {
+              fs.writeFileSync(lockFile, '')
+              lastLock = lockFile
             }
 
             console.log(
@@ -254,6 +268,10 @@ async function main(workFileOrPath?: string) {
                 fs.unlinkSync(outputFile)
               } catch {}
             }
+
+            try {
+              fs.unlinkSync(lockFile)
+            } catch {}
           }
         }
       }
@@ -263,9 +281,10 @@ async function main(workFileOrPath?: string) {
 
 main()
 
-// delete half-written files on exit
-// process.on('exit', () => {
-//   try {
-//     if (onWriteFile) fs.unlinkSync(onWriteFile)
-//   } catch {}
-// })
+process.on('exit', () => {
+  try {
+    if (lastLock) {
+      fs.unlinkSync(lastLock)
+    }
+  } catch {}
+})
