@@ -45,6 +45,7 @@ const exts = [
   'f4p',
   'f4a',
   'f4b',
+  'mts'
 ]
   .map(ext => [ext, ext.toUpperCase()])
   .flat()
