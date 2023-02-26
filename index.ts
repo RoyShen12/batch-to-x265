@@ -45,7 +45,7 @@ const exts = [
   'f4p',
   'f4a',
   'f4b',
-  'mts'
+  'mts',
 ]
   .map(ext => [ext, ext.toUpperCase()])
   .flat()
@@ -65,6 +65,11 @@ const ffmpegTimeStampToSeconds = (timeStamp: string) => {
 }
 
 let lastLock = ''
+
+let programStat = {
+  originSize: 0,
+  outputSize: 0,
+}
 
 async function main(workFileOrPath?: string) {
   workFileOrPath = workFileOrPath || inputPath
@@ -265,10 +270,25 @@ async function main(workFileOrPath?: string) {
             if (conversionSuccess) {
               const outFileSize = fs.statSync(outputFile).size
 
+              programStat.originSize += originSize
+              programStat.outputSize += outFileSize
+
+              const spaceSavedRate = (((originSize - outFileSize) / originSize) * 100).toFixed(1)
+              const totalSpaceSavedRate = (
+                ((programStat.originSize - programStat.outputSize) / programStat.originSize) *
+                100
+              ).toFixed(1)
+
               console.log(
                 chalk.greenBright(
                   '\nffmpeg run finish, space saved: ' +
-                    chalk.bold(chalk.whiteBright(`${(((originSize - outFileSize) / originSize) * 100).toFixed(1)}%`))
+                    chalk.bold(chalk.whiteBright(`${spaceSavedRate}%`)) +
+                    ', total input size: ' +
+                    chalk.bold(chalk.whiteBright(`${(programStat.originSize / 1024 / 1024).toFixed(2)}MB`)) +
+                    ', total output size: ' +
+                    chalk.bold(chalk.whiteBright(`${(programStat.outputSize / 1024 / 1024).toFixed(2)}MB`)) +
+                    ', total space saved: ' +
+                    chalk.bold(chalk.whiteBright(`${totalSpaceSavedRate}%`))
                 )
               )
 
