@@ -284,9 +284,9 @@ async function main(workFileOrPath?: string) {
                   '\nffmpeg run finish, space saved: ' +
                     chalk.bold(chalk.whiteBright(`${spaceSavedRate}%`)) +
                     ', total input size: ' +
-                    chalk.bold(chalk.whiteBright(`${(programStat.originSize / 1024 / 1024).toFixed(2)}MB`)) +
+                    chalk.bold(chalk.redBright(`${(programStat.originSize / 1024 / 1024).toFixed(2)}MB`)) +
                     ', total output size: ' +
-                    chalk.bold(chalk.whiteBright(`${(programStat.outputSize / 1024 / 1024).toFixed(2)}MB`)) +
+                    chalk.bold(chalk.greenBright(`${(programStat.outputSize / 1024 / 1024).toFixed(2)}MB`)) +
                     ', total space saved: ' +
                     chalk.bold(chalk.whiteBright(`${totalSpaceSavedRate}%`))
                 )
