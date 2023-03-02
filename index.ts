@@ -186,7 +186,7 @@ async function main(workFileOrPath?: string) {
                   '-preset',
                   'fast',
                   '-crf',
-                  '28',
+                  '25',
                   '-tag:v',
                   'hvc1',
                   '-c:a',
