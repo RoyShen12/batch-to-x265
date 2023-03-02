@@ -51,6 +51,8 @@ const exts = [
   .flat()
   .map(ext => `.${ext}`)
 
+const needConversionAudioCodec = ['wmav2', 'wmav1', 'wmapro']
+
 const reportRawProgress = throttle(function (c) {
   console.log(c)
 }, 1000)
@@ -132,6 +134,8 @@ async function main(workFileOrPath?: string) {
                 .filter(line => /coded_height=\d+/.test(line))
                 ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
 
+            const audioForm = needConversionAudioCodec.some(codec => codecLine.includes(codec)) ? 'aac' : 'copy'
+
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
             if (outputFile === file) {
@@ -186,7 +190,7 @@ async function main(workFileOrPath?: string) {
                   '-tag:v',
                   'hvc1',
                   '-c:a',
-                  'copy',
+                  audioForm,
                   outputFile,
                 ])
 
