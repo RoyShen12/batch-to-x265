@@ -264,7 +264,8 @@ async function main(workFileOrPath?: string) {
 
                 conversionSuccess = true
               } catch (error) {
-                console.log(chalk.bold(chalk.redBright(`\nffmpeg conversion error`)))
+                console.log(chalk.bold(chalk.yellowBright(`\nffmpeg conversion error`)))
+                console.log(chalk.bold(chalk.redBright(error?.message ?? error)))
                 retry += 1
 
                 await new Promise(resolve => setTimeout(resolve, 1000))
