@@ -21,6 +21,8 @@ let inputPath = path.resolve(process.argv[2] || '.')
 
 if (inputPath.endsWith('"')) inputPath = inputPath.slice(0, -1)
 
+const forceAAC = process.argv.includes('-aac')
+
 const exts = [
   'avi',
   'wmv',
@@ -134,7 +136,7 @@ async function main(workFileOrPath?: string) {
                 .filter(line => /coded_height=\d+/.test(line))
                 ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
 
-            const audioForm = needConversionAudioCodec.some(codec => codecLine.includes(codec)) ? 'aac' : 'copy'
+            const audioForm = (forceAAC || needConversionAudioCodec.some(codec => codecLine.includes(codec))) ? 'aac' : 'copy'
 
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
