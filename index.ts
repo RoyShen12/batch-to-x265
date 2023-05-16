@@ -1,6 +1,7 @@
 import child_process from 'child_process'
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 
 import { FFMpegProgress } from 'ffmpeg-progress-wrapper'
 import chalk from 'chalk'
@@ -111,7 +112,8 @@ async function main(workFileOrPath?: string) {
         if (exts.some(ext => file.endsWith(ext))) {
           // console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
 
-          if (file.endsWith('.x265.mp4') || file.endsWith('-x265.mp4')) continue
+          if (file.toLowerCase().endsWith('.x265.mp4') || file.toLowerCase().endsWith('-x265.mp4')
+          || file.toLowerCase().endsWith(' x265.mp4')) continue
 
           // check file is not hevc
           let ffprobeRes = ''
@@ -140,12 +142,16 @@ async function main(workFileOrPath?: string) {
 
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
-            if (outputFile === file) {
+            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
               outputFile = file.replace(/\.[^.]+$/, '.x265.mp4')
             }
 
-            if (outputFile === file) {
+            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
               outputFile = file.replace(/\.[^.]+$/, '-x265.mp4')
+            }
+
+            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
+              outputFile = file.replace(/\.[^.]+$/, ' x265.mp4')
             }
 
             const lockFile = `${file}.lock`
