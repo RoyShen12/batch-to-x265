@@ -158,11 +158,6 @@ async function main(workFileOrPath?: string) {
                 .filter(line => /coded_height=\d+/.test(line))
                 ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
 
-            const audioForm =
-              forceAAC || needConversionAudioCodec.some(codec => codecLine.includes(codec)) ? 'aac' : 'copy'
-
-            const limitResolution = options.res ? ['-vf', `"scale=-1:${options.res}"`] : []
-
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
             if (
@@ -215,6 +210,11 @@ async function main(workFileOrPath?: string) {
                 // const cmd = `ffmpeg -y -hwaccel auto -i "${file}" -c:v libx265 -preset fast -crf 28 -tag:v hvc1 -c:a copy "${outputFile}"`
                 // console.log(`ffmpeg command: ${chalk.bold(chalk.cyanBright(cmd))}`)
                 // child_process.execSync(cmd)
+                const audioForm =
+                  forceAAC || needConversionAudioCodec.some(codec => codecLine.includes(codec)) ? 'aac' : 'copy'
+
+                const limitResolution = options.res ? ['-vf', `scale=-1:${options.res}`] : []
+
                 const command = [
                   '-y',
                   '-hwaccel',
