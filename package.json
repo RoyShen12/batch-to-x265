@@ -14,6 +14,7 @@
     "@types/node": "^18.11.9",
     "@types/progress": "^2.0.5",
     "chalk": "4",
+    "commander": "^11.0.0",
     "ffmpeg-progress-wrapper": "^2.0.1",
     "lodash": "^4.17.21",
     "progress": "^2.0.3",

@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 
+import { program } from 'commander'
 import { FFMpegProgress } from 'ffmpeg-progress-wrapper'
 import chalk from 'chalk'
 import { throttle } from 'lodash'
@@ -18,11 +19,26 @@ interface Progress {
   bitrate: number
 }
 
-let inputPath = path.resolve(process.argv[2] || '.')
+program
+  .option('-r, --reverse')
+  .option('--aac')
+  .option('-p, --path <path>')
+  .option('--preset <preset>', '', 'fast')
+  .option('--crf <crf value>', '', '25')
+  .option('--res <resolution>')
+  .option('--show-command')
+
+program.parse()
+
+const options = program.opts()
+
+console.log('options', options)
+
+let inputPath = path.resolve(options.path || '.')
 
 if (inputPath.endsWith('"')) inputPath = inputPath.slice(0, -1)
 
-const forceAAC = process.argv.includes('-aac')
+const forceAAC = options.aac
 
 const exts = [
   'avi',
@@ -87,7 +103,7 @@ async function main(workFileOrPath?: string) {
       .map(file => path.resolve(workFileOrPath as string, file))
       .sort()
 
-    if (process.argv.includes('-r')) {
+    if (options.r) {
       files = files.reverse()
     }
 
@@ -112,8 +128,12 @@ async function main(workFileOrPath?: string) {
         if (exts.some(ext => file.endsWith(ext))) {
           // console.log(`switch to file ${chalk.bold(chalk.whiteBright(file))}`)
 
-          if (file.toLowerCase().endsWith('.x265.mp4') || file.toLowerCase().endsWith('-x265.mp4')
-          || file.toLowerCase().endsWith(' x265.mp4')) continue
+          if (
+            file.toLowerCase().endsWith('.x265.mp4') ||
+            file.toLowerCase().endsWith('-x265.mp4') ||
+            file.toLowerCase().endsWith(' x265.mp4')
+          )
+            continue
 
           // check file is not hevc
           let ffprobeRes = ''
@@ -138,19 +158,31 @@ async function main(workFileOrPath?: string) {
                 .filter(line => /coded_height=\d+/.test(line))
                 ?.map(line => Number(line.match(/coded_height=(\d+)/)?.[1] || '-1'))?.[0] || -1
 
-            const audioForm = (forceAAC || needConversionAudioCodec.some(codec => codecLine.includes(codec))) ? 'aac' : 'copy'
+            const audioForm =
+              forceAAC || needConversionAudioCodec.some(codec => codecLine.includes(codec)) ? 'aac' : 'copy'
+
+            const limitResolution = options.res ? ['-vf', `"scale=-1:${options.res}"`] : []
 
             let outputFile = file.replace(/\.[^.]+$/, '.mp4')
 
-            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
+            if (
+              outputFile === file ||
+              (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())
+            ) {
               outputFile = file.replace(/\.[^.]+$/, '.x265.mp4')
             }
 
-            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
+            if (
+              outputFile === file ||
+              (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())
+            ) {
               outputFile = file.replace(/\.[^.]+$/, '-x265.mp4')
             }
 
-            if (outputFile === file || (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())) {
+            if (
+              outputFile === file ||
+              (os.platform() === 'darwin' && outputFile.toLowerCase() === file.toLowerCase())
+            ) {
               outputFile = file.replace(/\.[^.]+$/, ' x265.mp4')
             }
 
@@ -183,24 +215,29 @@ async function main(workFileOrPath?: string) {
                 // const cmd = `ffmpeg -y -hwaccel auto -i "${file}" -c:v libx265 -preset fast -crf 28 -tag:v hvc1 -c:a copy "${outputFile}"`
                 // console.log(`ffmpeg command: ${chalk.bold(chalk.cyanBright(cmd))}`)
                 // child_process.execSync(cmd)
-                const process = new FFMpegProgress([
+                const command = [
                   '-y',
                   '-hwaccel',
                   'auto',
                   '-i',
                   file,
+                  ...limitResolution,
                   '-c:v',
                   'libx265',
                   '-preset',
-                  'fast',
+                  options.preset,
                   '-crf',
-                  '25',
+                  options.crf,
                   '-tag:v',
                   'hvc1',
                   '-c:a',
                   audioForm,
                   outputFile,
-                ])
+                ]
+                if (options.showCommand) {
+                  console.log(command.join(' '))
+                }
+                const process = new FFMpegProgress(command)
 
                 const progressBar = new ProgressBar(`[:bar] :percent :speed :size :bitrate :etasec time: :time`, {
                   incomplete: ' ',
